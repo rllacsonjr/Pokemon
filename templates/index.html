@@ -1,52 +1,1038 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Pokémon Card Recommender Demo</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 2em; }
-    #recommendations { margin-top: 1em; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Card Recommender</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1, h2 {
+            color: #dd2d30;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #666;
+            font-weight: normal;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .deck-builder {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .deck-input {
+            flex: 1;
+            min-width: 300px;
+        }
+        .current-deck {
+            flex: 1;
+            min-width: 300px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3d7dca;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2a6db5;
+        }
+        .btn-add {
+            background-color: #4caf50;
+        }
+        .btn-add:hover {
+            background-color: #3e8e41;
+        }
+        .btn-recommend {
+            display: block;
+            margin: 20px auto;
+            width: 250px;
+        }
+        .deck-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            margin-top: 10px;
+        }
+        .deck-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .deck-item:last-child {
+            border-bottom: none;
+        }
+        .remove-card {
+            background-color: #dd2d30;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .remove-card:hover {
+            background-color: #c42b2b;
+        }
+        .recommendations {
+            margin-top: 30px;
+        }
+        .recommendations h3 {
+            color: #3d7dca;
+            border-bottom: 2px solid #3d7dca;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .recommendation-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .card-name {
+            margin: 0;
+            color: #dd2d30;
+            font-size: 18px;
+        }
+        .card-rank {
+            background-color: #3d7dca;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .card-id {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 10px;
+        }
+        .card .types {
+            margin-bottom: 10px;
+        }
+        .card .type {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+            color: white;
+        }
+        .type-Fire { background-color: #F08030; }
+        .type-Water { background-color: #6890F0; }
+        .type-Grass { background-color: #78C850; }
+        .type-Electric { background-color: #F8D030; }
+        .type-Psychic { background-color: #F85888; }
+        .type-Fighting { background-color: #C03028; }
+        .type-Colorless { background-color: #A8A878; }
+        .type-Darkness { background-color: #705848; }
+        .type-Metal { background-color: #B8B8D0; }
+        .type-Dragon { background-color: #7038F8; }
+        .type-Fairy { background-color: #EE99AC; }
+        .type-Lightning { background-color: #F8D030; }
+        .card .score {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .card .explanation {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #3d7dca;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .code-section {
+            background-color: #f7f7f7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 40px;
+        }
+        .code-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        pre {
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #282c34;
+            color: #abb2bf;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+        }
+        .code-comment {
+            color: #98c379;
+        }
+    </style>
 </head>
 <body>
-  <h1>Pokémon Card Recommender Demo</h1>
-  <input type="text" id="card-input" placeholder="Enter Pokémon card name" />
-  <button id="recommend-btn">Get Recommendations</button>
-  <div id="recommendations"></div>
+    <h1>Pokémon Card Recommender System</h1>
+    <h2>Build your deck and get smart card recommendations</h2>
+    
+    <div class="container">
+        <div id="alertBox" class="alert alert-error"></div>
+        
+        <div class="deck-builder">
+            <div class="deck-input">
+                <h3>Add Cards to Your Deck</h3>
+                
+                <div class="form-group">
+                    <label for="cardId">Card ID:</label>
+                    <input type="text" id="cardId" placeholder="Enter card ID (e.g., bw1-19, xy5-54)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cardName">Card Name:</label>
+                    <input type="text" id="cardName" placeholder="Enter card name (e.g., Pikachu, Professor's Research)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="supertype">Card Type:</label>
+                    <select id="supertype">
+                        <option value="">Select card type</option>
+                        <option value="Pokémon">Pokémon</option>
+                        <option value="Trainer">Trainer</option>
+                        <option value="Energy">Energy</option>
+                    </select>
+                </div>
+                
+                <!-- Only show for Pokémon cards -->
+                <div id="pokemonOptions" style="display: none;">
+                    <div class="form-group">
+                        <label for="primaryType">Primary Type:</label>
+                        <select id="primaryType">
+                            <option value="">Select type</option>
+                            <option value="Fire">Fire</option>
+                            <option value="Water">Water</option>
+                            <option value="Grass">Grass</option>
+                            <option value="Electric">Electric</option>
+                            <option value="Psychic">Psychic</option>
+                            <option value="Fighting">Fighting</option>
+                            <option value="Colorless">Colorless</option>
+                            <option value="Darkness">Darkness</option>
+                            <option value="Metal">Metal</option>
+                            <option value="Dragon">Dragon</option>
+                            <option value="Fairy">Fairy</option>
+                            <option value="Lightning">Lightning</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button id="addCardBtn" class="btn-add">Add Card to Deck</button>
+            </div>
+            
+            <div class="current-deck">
+                <h3>Current Deck <span id="deckCount">(0 cards)</span></h3>
+                <div id="deckList" class="deck-list">
+                    <div class="empty-deck">Your deck is empty. Add some cards to get started!</div>
+                </div>
+                <button id="clearDeckBtn">Clear Deck</button>
+            </div>
+        </div>
+        
+        <button id="recommendBtn" class="btn-recommend">Get Recommendations</button>
+        
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your deck and finding recommendations...</p>
+        </div>
+    </div>
+    
+    <div id="recommendationsContainer" class="container recommendations" style="display: none;">
+        <h3>Top Card Recommendations</h3>
+        <div id="recommendationsList" class="recommendation-list"></div>
+    </div>
+    
+    <div class="container code-section">
+        <h3>About the Recommendation Algorithm</h3>
+        <p>This recommender system is based on a hybrid approach that considers:</p>
+        <ol>
+            <li>Content-based similarity: Cards that frequently appear together in successful decks</li>
+            <li>Type matching: Cards that complement the main types in your deck</li>
+            <li>Deck balance: Ensuring a proper mix of Pokémon, Trainer, and Energy cards</li>
+            <li>Card synergies: Special combinations that work well together</li>
+        </ol>
+        
+        <pre><span class="code-comment"># Main recommendation function from the PokemonCardRecommender class</span>
+def recommend_cards(self, current_deck, top_n=10):
+    <span class="code-comment">"""Recommend cards based on the current deck using a hybrid approach."""</span>
+    if not current_deck:
+        return []
 
-  <script>
-    $('#recommend-btn').click(function() {
-      var cardName = $('#card-input').val().trim();
-      if (!cardName) {
-        alert("Please enter a card name.");
-        return;
-      }
-      
-      $.ajax({
-        url: '/api/recommend',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ card: cardName }),
-        success: function(response) {
-          var recDiv = $('#recommendations');
-          recDiv.empty();
-          if (response.recommendations && response.recommendations.length > 0) {
-            recDiv.append('<h2>Recommended Cards:</h2>');
-            var list = $('<ul></ul>');
-            response.recommendations.forEach(function(item) {
-              list.append('<li>' + item + '</li>');
+    <span class="code-comment"># Analyze deck</span>
+    deck_analysis = self._analyze_deck(current_deck)
+
+    <span class="code-comment"># Get various score components</span>
+    content_scores = self._get_content_based_scores(current_deck)
+    type_scores = pd.Series(self._get_type_based_scores(current_deck, deck_analysis, weight=1.2))
+    balance_scores = pd.Series(self._get_balance_scores(current_deck, deck_analysis, weight=0.8))
+    synergy_scores = pd.Series(self._get_synergy_scores(current_deck, weight=1.0))
+
+    <span class="code-comment"># Combine all scores</span>
+    final_scores = pd.Series(0, index=self.card_similarity_df.index)
+
+    for scores in [content_scores, type_scores, balance_scores, synergy_scores]:
+        if not scores.empty:
+            final_scores = final_scores.add(scores, fill_value=0)
+
+    <span class="code-comment"># Get top recommendations</span>
+    recommended_card_ids = final_scores.nlargest(top_n).index.tolist()
+    
+    <span class="code-comment"># Prepare and return detailed recommendations</span>
+    return recommendations</pre>
+    </div>
+
+    <script>
+        // Simulated database of Pokémon cards (would be loaded from an actual CSV in production)
+        const pokemonCardDatabase = [
+            {
+                id: "bw1-19",
+                name: "Emboar",
+                supertype: "Pokémon",
+                types: ["Fire"],
+                evolvesTo: "",
+                rarity: "Rare Holo"
+            },
+            {
+                id: "bw1-17",
+                name: "Pignite",
+                supertype: "Pokémon",
+                types: ["Fire"],
+                evolvesTo: "Emboar",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw1-15",
+                name: "Tepig",
+                supertype: "Pokémon",
+                types: ["Fire"],
+                evolvesTo: "Pignite",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-22",
+                name: "Simisear",
+                supertype: "Pokémon",
+                types: ["Fire"],
+                evolvesTo: "",
+                rarity: "Rare"
+            },
+            {
+                id: "bw1-21",
+                name: "Pansear",
+                supertype: "Pokémon",
+                types: ["Fire"],
+                evolvesTo: "Simisear",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-25",
+                name: "Darmanitan",
+                supertype: "Pokémon",
+                types: ["Fire"],
+                evolvesTo: "",
+                rarity: "Rare"
+            },
+            {
+                id: "bw1-23",
+                name: "Darumaka",
+                supertype: "Pokémon",
+                types: ["Fire"],
+                evolvesTo: "Darmanitan",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-58",
+                name: "Timburr",
+                supertype: "Pokémon",
+                types: ["Fighting"],
+                evolvesTo: "Gurdurr",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-83",
+                name: "Stoutland",
+                supertype: "Pokémon",
+                types: ["Colorless"],
+                evolvesTo: "",
+                rarity: "Rare"
+            },
+            {
+                id: "bw1-82",
+                name: "Herdier",
+                supertype: "Pokémon",
+                types: ["Colorless"],
+                evolvesTo: "Stoutland",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw1-81",
+                name: "Lillipup",
+                supertype: "Pokémon",
+                types: ["Colorless"],
+                evolvesTo: "Herdier",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-89",
+                name: "Cinccino",
+                supertype: "Pokémon",
+                types: ["Colorless"],
+                evolvesTo: "",
+                rarity: "Rare"
+            },
+            {
+                id: "bw1-88",
+                name: "Minccino",
+                supertype: "Pokémon",
+                types: ["Colorless"],
+                evolvesTo: "Cinccino",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-93",
+                name: "Energy Search",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-104",
+                name: "Switch",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-92",
+                name: "Energy Retrieval",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw1-99",
+                name: "Pokémon Communication",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw1-101",
+                name: "Professor Juniper",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw1-102",
+                name: "Revive",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw1-106",
+                name: "Fire Energy",
+                supertype: "Energy",
+                types: ["Fire"],
+                evolvesTo: "",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-110",
+                name: "Fighting Energy",
+                supertype: "Energy",
+                types: ["Fighting"],
+                evolvesTo: "",
+                rarity: "Common"
+            },
+            {
+                id: "bw2-91",
+                name: "Cheren",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw1-97",
+                name: "Poké Ball",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Common"
+            },
+            {
+                id: "bw2-93",
+                name: "Great Ball",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw6-117",
+                name: "Blend Energy GrassFirePsychicDarkness",
+                supertype: "Energy",
+                types: ["Grass", "Fire", "Psychic", "Darkness"],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw2-90",
+                name: "Bianca",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw3-92",
+                name: "N",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Rare"
+            },
+            {
+                id: "bw1-77",
+                name: "Patrat",
+                supertype: "Pokémon",
+                types: ["Colorless"],
+                evolvesTo: "Watchog",
+                rarity: "Common"
+            },
+            {
+                id: "bw1-87",
+                name: "Audino",
+                supertype: "Pokémon",
+                types: ["Colorless"],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw5-91",
+                name: "Cheren",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Uncommon"
+            },
+            {
+                id: "bw1-100",
+                name: "Potion",
+                supertype: "Trainer",
+                types: [],
+                evolvesTo: "",
+                rarity: "Common"
+            }
+        ];
+
+        // Initialize page elements
+        document.addEventListener('DOMContentLoaded', () => {
+            const supertypeSelect = document.getElementById('supertype');
+            const pokemonOptions = document.getElementById('pokemonOptions');
+            const addCardBtn = document.getElementById('addCardBtn');
+            const clearDeckBtn = document.getElementById('clearDeckBtn');
+            const recommendBtn = document.getElementById('recommendBtn');
+            const deckList = document.getElementById('deckList');
+            const deckCount = document.getElementById('deckCount');
+            const recommendationsContainer = document.getElementById('recommendationsContainer');
+            const recommendationsList = document.getElementById('recommendationsList');
+            const loadingIndicator = document.querySelector('.loading');
+            const alertBox = document.getElementById('alertBox');
+
+            // Current deck
+            let currentDeck = [];
+
+            // Show/hide Pokémon specific options based on supertype selection
+            supertypeSelect.addEventListener('change', () => {
+                if (supertypeSelect.value === 'Pokémon') {
+                    pokemonOptions.style.display = 'block';
+                } else {
+                    pokemonOptions.style.display = 'none';
+                }
             });
-            recDiv.append(list);
-          } else {
-            recDiv.append('<p>No recommendations found.</p>');
-          }
-        },
-        error: function() {
-          $('#recommendations').html('<p>Error retrieving recommendations.</p>');
-        }
-      });
-    });
-  </script>
+
+            // Add card to deck
+            addCardBtn.addEventListener('click', () => {
+                const cardId = document.getElementById('cardId').value.trim();
+                const cardName = document.getElementById('cardName').value.trim();
+                const supertype = document.getElementById('supertype').value;
+                
+                // Validation
+                if (!cardId && !cardName) {
+                    showAlert('Please enter either a card ID or name');
+                    return;
+                }
+                
+                if (!supertype) {
+                    showAlert('Please select a card type');
+                    return;
+                }
+
+                let types = [];
+                if (supertype === 'Pokémon') {
+                    const primaryType = document.getElementById('primaryType').value;
+                    if (!primaryType) {
+                        showAlert('Please select a primary type for the Pokémon');
+                        return;
+                    }
+                    types.push(primaryType);
+                }
+
+                // Generate an ID if not provided
+                const generatedId = cardId || `custom-${Date.now()}`;
+                
+                // Check if card already exists in deck
+                if (currentDeck.some(card => card.id === generatedId)) {
+                    showAlert('This card is already in your deck');
+                    return;
+                }
+
+                // Find card in database or create custom card
+                let card;
+                if (cardId) {
+                    card = pokemonCardDatabase.find(c => c.id === cardId);
+                    if (!card) {
+                        card = {
+                            id: generatedId,
+                            name: cardName || 'Custom Card',
+                            supertype: supertype,
+                            types: types,
+                            evolvesTo: "",
+                            rarity: "Unknown"
+                        };
+                    }
+                } else {
+                    card = {
+                        id: generatedId,
+                        name: cardName,
+                        supertype: supertype,
+                        types: types,
+                        evolvesTo: "",
+                        rarity: "Unknown"
+                    };
+                }
+
+                // Add to deck
+                currentDeck.push(card);
+                updateDeckDisplay();
+                clearCardInputs();
+            });
+
+            // Clear deck
+            clearDeckBtn.addEventListener('click', () => {
+                currentDeck = [];
+                updateDeckDisplay();
+                hideRecommendations();
+            });
+
+            // Get recommendations
+            recommendBtn.addEventListener('click', () => {
+                if (currentDeck.length === 0) {
+                    showAlert('Please add at least one card to your deck');
+                    return;
+                }
+
+                // Show loading
+                loadingIndicator.style.display = 'block';
+                hideRecommendations();
+
+                // Simulate API call to backend (would call the actual Python recommender in production)
+                setTimeout(() => {
+                    const recommendations = simulateRecommendations(currentDeck);
+                    displayRecommendations(recommendations);
+                    loadingIndicator.style.display = 'none';
+                }, 1500);
+            });
+
+            // Function to update deck display
+            function updateDeckDisplay() {
+                deckList.innerHTML = '';
+                deckCount.textContent = `(${currentDeck.length} cards)`;
+
+                if (currentDeck.length === 0) {
+                    deckList.innerHTML = '<div class="empty-deck">Your deck is empty. Add some cards to get started!</div>';
+                    return;
+                }
+
+                // Group by card type
+                const grouped = {
+                    'Pokémon': [],
+                    'Trainer': [],
+                    'Energy': []
+                };
+
+                currentDeck.forEach(card => {
+                    grouped[card.supertype].push(card);
+                });
+
+                // Display by groups
+                Object.keys(grouped).forEach(group => {
+                    if (grouped[group].length > 0) {
+                        const groupHeader = document.createElement('div');
+                        groupHeader.className = 'deck-group-header';
+                        groupHeader.textContent = `${group} Cards (${grouped[group].length})`;
+                        deckList.appendChild(groupHeader);
+
+                        grouped[group].forEach(card => {
+                            addCardToList(card);
+                        });
+                    }
+                });
+            }
+
+            // Add a card to the display list
+            function addCardToList(card) {
+                const cardElem = document.createElement('div');
+                cardElem.className = 'deck-item';
+                
+                // Create card info
+                const cardInfo = document.createElement('div');
+                cardInfo.className = 'card-info';
+                
+                const cardName = document.createElement('span');
+                cardName.className = 'card-name';
+                cardName.textContent = card.name;
+                
+                const cardId = document.createElement('span');
+                cardId.className = 'card-id';
+                cardId.textContent = ` (${card.id})`;
+                
+                cardInfo.appendChild(cardName);
+                cardInfo.appendChild(cardId);
+                
+                // Create remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-card';
+                removeBtn.textContent = 'Remove';
+                removeBtn.addEventListener('click', () => {
+                    currentDeck = currentDeck.filter(c => c.id !== card.id);
+                    updateDeckDisplay();
+                });
+                
+                // Add everything to the card element
+                cardElem.appendChild(cardInfo);
+                cardElem.appendChild(removeBtn);
+                
+                deckList.appendChild(cardElem);
+            }
+
+            // Clear card inputs
+            function clearCardInputs() {
+                document.getElementById('cardId').value = '';
+                document.getElementById('cardName').value = '';
+                document.getElementById('supertype').value = '';
+                document.getElementById('primaryType').value = '';
+                pokemonOptions.style.display = 'none';
+            }
+
+            // Display recommendations
+            function displayRecommendations(recommendations) {
+                recommendationsList.innerHTML = '';
+                
+                recommendations.forEach(rec => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    // Card header with name and rank
+                    const cardHeader = document.createElement('div');
+                    cardHeader.className = 'card-header';
+                    
+                    const cardName = document.createElement('h4');
+                    cardName.className = 'card-name';
+                    cardName.textContent = rec.card_name;
+                    
+                    const cardRank = document.createElement('div');
+                    cardRank.className = 'card-rank';
+                    cardRank.textContent = rec.rank;
+                    
+                    cardHeader.appendChild(cardName);
+                    cardHeader.appendChild(cardRank);
+                    
+                    // Card ID
+                    const cardId = document.createElement('div');
+                    cardId.className = 'card-id';
+                    cardId.textContent = rec.card_id;
+                    
+                    // Types
+                    const typesContainer = document.createElement('div');
+                    typesContainer.className = 'types';
+                    
+                    const types = Array.isArray(rec.types) ? rec.types : 
+                                  (typeof rec.types === 'string' && rec.types.startsWith('[')) ? 
+                                  JSON.parse(rec.types.replace(/'/g, '"')) : [];
+                    
+                    if (types.length > 0) {
+                        types.forEach(type => {
+                            const typeElem = document.createElement('span');
+                            typeElem.className = `type type-${type}`;
+                            typeElem.textContent = type;
+                            typesContainer.appendChild(typeElem);
+                        });
+                    }
+                    
+                    // Score
+                    const score = document.createElement('div');
+                    score.className = 'score';
+                    score.textContent = `Recommendation Score: ${rec.score.toFixed(2)}`;
+                    
+                    // Explanation
+                    const explanation = document.createElement('div');
+                    explanation.className = 'explanation';
+                    explanation.textContent = rec.explanation;
+                    
+                    // Add button
+                    const addBtn = document.createElement('button');
+                    addBtn.textContent = 'Add to Deck';
+                    addBtn.addEventListener('click', () => {
+                        // Check if card already exists in deck
+                        if (currentDeck.some(c => c.id === rec.card_id)) {
+                            showAlert('This card is already in your deck');
+                            return;
+                        }
+                        
+                        // Find the card in database or create a new one
+                        let cardToAdd = pokemonCardDatabase.find(c => c.id === rec.card_id);
+                        if (!cardToAdd) {
+                            cardToAdd = {
+                                id: rec.card_id,
+                                name: rec.card_name,
+                                supertype: rec.supertype || "Unknown",
+                                types: types,
+                                evolvesTo: "",
+                                rarity: "Unknown"
+                            };
+                        }
+                        
+                        currentDeck.push(cardToAdd);
+                        updateDeckDisplay();
+                        showAlert(`Added ${rec.card_name} to your deck!`, 'success');
+                    });
+                    
+                    // Append all elements to the card
+                    card.appendChild(cardHeader);
+                    card.appendChild(cardId);
+                    card.appendChild(typesContainer);
+                    card.appendChild(score);
+                    card.appendChild(explanation);
+                    card.appendChild(addBtn);
+                    
+                    recommendationsList.appendChild(card);
+                });
+                
+                recommendationsContainer.style.display = 'block';
+            }
+
+            // Hide recommendations
+            function hideRecommendations() {
+                recommendationsContainer.style.display = 'none';
+            }
+
+            // Show alert
+            function showAlert(message, type = 'error') {
+                alertBox.className = `alert alert-${type}`;
+                alertBox.textContent = message;
+                alertBox.style.display = 'block';
+                
+                setTimeout(() => {
+                    alertBox.style.display = 'none';
+                }, 3000);
+            }
+
+            // Simulate recommendation algorithm
+            function simulateRecommendations(deck) {
+                // In a real implementation, this would call a backend API
+                
+                // Extract deck information
+                const deckTypes = [];
+                const deckSupertypes = {
+                    'Pokémon': 0,
+                    'Trainer': 0,
+                    'Energy': 0
+                };
+                
+                deck.forEach(card => {
+                    deckSupertypes[card.supertype]++;
+                    if (card.types && card.types.length > 0) {
+                        card.types.forEach(type => {
+                            if (!deckTypes.includes(type)) {
+                                deckTypes.push(type);
+                            }
+                        });
+                    }
+                });
+                
+                // Find cards that match the deck profile
+                const recommendations = [];
+                const alreadyInDeck = deck.map(card => card.id);
+                
+                // Filter cards not already in deck
+                const candidateCards = pokemonCardDatabase.filter(card => !alreadyInDeck.includes(card.id));
+                
+                // Score each candidate card
+                candidateCards.forEach(card => {
+                    let score = 0;
+                    let explanation = "";
+                    
+                    // Type matching score
+                    if (card.types && card.types.length > 0) {
+                        card.types.forEach(type => {
+                            if (deckTypes.includes(type)) {
+                                score += 0.5;
+                                explanation += `Matches your deck's ${type} type. `;
+                            }
+                        });
+                    }
+                    
+                    // Evolution chain score
+                    if (card.evolvesTo && deck.some(c => c.name === card.evolvesTo)) {
+                        score += 2;
+                        explanation += `Evolves into ${card.evolvesTo} which is in your deck. `;
+                    }
+                    
+                    // Balance score
+                    if ((deckSupertypes['Pokémon'] < 20 && card.supertype === 'Pokémon') ||
+                        (deckSupertypes['Trainer'] < 15 && card.supertype === 'Trainer') ||
+                        (deckSupertypes['Energy'] < 10 && card.supertype === 'Energy')) {
+                        score += 0.3;
+                        explanation += `Helps balance your deck's ${card.supertype} count. `;
+                    }
+                    
+                    // Rarity score
+                    if (card.rarity === 'Rare' || card.rarity === 'Rare Holo') {
+                        score += 0.2;
+                        explanation += 'Powerful rare card. ';
+                    }
+                    
+                    // Set a minimum score for variety
+                    score = Math.max(score, 0.1);
+                    
+                    if (explanation === "") {
+                        explanation = "General recommendation to diversify your deck.";
+                    }
+                    
+                    recommendations.push({
+                        card_id: card.id,
+                        card_name: card.name,
+                        supertype: card.supertype,
+                        types: card.types,
+                        score: score,
+                        explanation: explanation,
+                        rank: 0
+                    });
+                });
+                
+                // Sort and rank recommendations
+                recommendations.sort((a, b) => b.score - a.score);
+                
+                // Add rank
+                for (let i = 0; i < recommendations.length; i++) {
+                    recommendations[i].rank = i + 1;
+                }
+                
+                return recommendations.slice(0, 10);
+            }
+        });
+    </script>
 </body>
 </html>
