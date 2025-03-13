@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pokémon Card Recommender Demo</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    #recommendations { margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h1>Pokémon Card Recommender Demo</h1>
+  <input type="text" id="card-input" placeholder="Enter Pokémon card name" />
+  <button id="recommend-btn">Get Recommendations</button>
+  <div id="recommendations"></div>
+
+  <script>
+    $('#recommend-btn').click(function() {
+      var cardName = $('#card-input').val().trim();
+      if (!cardName) {
+        alert("Please enter a card name.");
+        return;
+      }
+      
+      $.ajax({
+        url: '/api/recommend',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ card: cardName }),
+        success: function(response) {
+          var recDiv = $('#recommendations');
+          recDiv.empty();
+          if (response.recommendations && response.recommendations.length > 0) {
+            recDiv.append('<h2>Recommended Cards:</h2>');
+            var list = $('<ul></ul>');
+            response.recommendations.forEach(function(item) {
+              list.append('<li>' + item + '</li>');
+            });
+            recDiv.append(list);
+          } else {
+            recDiv.append('<p>No recommendations found.</p>');
+          }
+        },
+        error: function() {
+          $('#recommendations').html('<p>Error retrieving recommendations.</p>');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
